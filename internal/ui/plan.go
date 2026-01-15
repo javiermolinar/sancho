@@ -44,6 +44,10 @@ Interactive mode:
   - [c]ancel: Exit without saving`,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := a.ensureRepo(); err != nil {
+				return err
+			}
+
 			input := strings.Join(args, " ")
 
 			// Use config default for model if not overridden

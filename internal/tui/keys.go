@@ -394,12 +394,38 @@ func (m Model) handleModalKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m.handlePlanResultKeys(msg)
 	case ModalWeekSummary:
 		return m.handleWeekSummaryKeys(msg)
+	case ModalInit:
+		return m.handleInitKeys(msg)
 	default:
 		if msg.String() == "esc" {
 			m.mode = ModeNormal
 			m.modalType = ModalNone
 			return m, nil
 		}
+	}
+	return m, nil
+}
+
+// handleInitKeys handles keys in the startup initialization modal.
+func (m Model) handleInitKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "enter", "y":
+		updated, err := m.initializeStorage()
+		if err != nil {
+			updated.initError = err.Error()
+			return updated, nil
+		}
+
+		updated.initError = ""
+		updated.initState.NeedsInit = false
+		updated.mode = ModeNormal
+		updated.modalType = ModalNone
+		updated.statusMsg = "Initialized config and database"
+		updated.loading = true
+		return updated, commands.LoadInitialWeeks(updated.repo, updated.weekStart)
+
+	case "esc", "n":
+		return m, tea.Quit
 	}
 	return m, nil
 }

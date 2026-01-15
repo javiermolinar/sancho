@@ -18,6 +18,10 @@ Example:
   sancho cancel 42`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
+			if err := a.ensureRepo(); err != nil {
+				return err
+			}
+
 			id, err := strconv.ParseInt(args[0], 10, 64)
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)

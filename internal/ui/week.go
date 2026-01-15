@@ -26,6 +26,10 @@ func (a *App) weekCmd() *cobra.Command {
 Shows Monday through Sunday of the current ISO week in a table format,
 calculates deep/shallow work stats, and optionally provides LLM coaching.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
+			if err := a.ensureRepo(); err != nil {
+				return err
+			}
+
 			if noColor {
 				DisableColor()
 			}

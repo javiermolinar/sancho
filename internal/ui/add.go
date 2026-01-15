@@ -26,6 +26,10 @@ Example:
   sancho add "Write documentation" --date=2025-01-10 --start=09:00 --end=11:00 --category=deep`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
+			if err := a.ensureRepo(); err != nil {
+				return err
+			}
+
 			t, err := task.New(args[0], category, date, start, end)
 			if err != nil {
 				return err

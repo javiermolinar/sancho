@@ -3,10 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/javiermolinar/sancho/internal/config"
-	"github.com/javiermolinar/sancho/internal/db"
 	"github.com/javiermolinar/sancho/internal/ui"
 )
 
@@ -24,19 +22,7 @@ func run() error {
 		return fmt.Errorf("loading config: %w", err)
 	}
 
-	// Ensure database directory exists
-	dbDir := filepath.Dir(cfg.Storage.DBPath)
-	if err := os.MkdirAll(dbDir, 0o755); err != nil {
-		return fmt.Errorf("creating data directory: %w", err)
-	}
-
-	// Initialize repository
-	repo, err := db.New(cfg.Storage.DBPath)
-	if err != nil {
-		return fmt.Errorf("initializing database: %w", err)
-	}
-	defer func() { _ = repo.Close() }()
-
-	app := ui.NewApp(repo, cfg)
+	app := ui.NewApp(nil, cfg)
+	defer func() { _ = app.Close() }()
 	return app.Execute()
 }

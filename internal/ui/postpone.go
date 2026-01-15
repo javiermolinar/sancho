@@ -29,6 +29,10 @@ The new task will have a reference to the original task.`,
   sancho postpone 123 --start=09:00 --end=11:00  # defaults to today`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
+			if err := a.ensureRepo(); err != nil {
+				return err
+			}
+
 			taskID, err := strconv.ParseInt(args[0], 10, 64)
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)

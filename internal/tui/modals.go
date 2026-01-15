@@ -22,6 +22,8 @@ func (m Model) renderModal() string {
 		return m.renderPlanResultModal()
 	case ModalWeekSummary:
 		return m.renderWeekSummaryModal()
+	case ModalInit:
+		return m.renderInitModal()
 	default:
 		return ""
 	}
@@ -237,4 +239,24 @@ func (m Model) renderPlanResultModal() string {
 		footer = view.RenderModalButtons(m.modalStyles(), "[Enter/a] Apply", "[m] Amend", "[Esc/c] Cancel")
 	}
 	return view.RenderModalFrame("LLM Draft", body, footer, m.modalStyles())
+}
+
+// renderInitModal renders the startup initialization modal.
+func (m Model) renderInitModal() string {
+	body := view.RenderInitBody(
+		view.InitModalModel{
+			ConfigPath:    m.initState.ConfigPath,
+			DBPath:        m.initState.DBPath,
+			ConfigMissing: m.initState.ConfigMissing,
+			DBMissing:     m.initState.DBMissing,
+			ErrorMessage:  m.initError,
+		},
+		view.InitModalStyles{
+			BodyStyle:  m.styles.ModalBodyStyle,
+			LabelStyle: m.styles.ModalLabelStyle,
+			HintStyle:  m.styles.ModalHintStyle,
+		},
+	)
+	footer := view.RenderModalButtons(m.modalStyles(), "[Enter] Allow", "[Esc] Quit")
+	return view.RenderModalFrame("Initialize Sancho", body, footer, m.modalStyles())
 }

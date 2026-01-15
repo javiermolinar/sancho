@@ -36,6 +36,7 @@ const (
 	ModalConfirmDelete
 	ModalPlanResult // Show LLM planning results
 	ModalWeekSummary
+	ModalInit
 )
 
 type weekSummaryView int
@@ -85,6 +86,8 @@ type Model struct {
 	formDuration   int             // Index into durationOptions
 	formFocus      int             // Which field is focused (0=desc, 1=duration)
 	confirmMessage string          // Message for confirm modal
+	initState      InitState       // Startup initialization state
+	initError      string          // Initialization error for modal display
 
 	// Planning state
 	planner    *dwplanner.Planner    // LLM planner (created on demand)
@@ -129,8 +132,22 @@ type Model struct {
 	err error
 }
 
+// ModelOption configures optional model behavior.
+type ModelOption func(*Model)
+
+// WithInitState sets the startup initialization state.
+func WithInitState(state InitState) ModelOption {
+	return func(m *Model) {
+		m.initState = state
+		if state.NeedsInit {
+			m.mode = ModeModal
+			m.modalType = ModalInit
+		}
+	}
+}
+
 // New creates a new TUI model.
-func New(repo task.Repository, cfg *config.Config) *Model {
+func New(repo task.Repository, cfg *config.Config, opts ...ModelOption) *Model {
 	ti := textinput.New()
 	ti.Placeholder = "/plan ..."
 
@@ -184,11 +201,19 @@ func New(repo task.Repository, cfg *config.Config) *Model {
 		cacheNeedsUpdate: true,
 	}
 	m.layoutCache = m.buildLayoutCache(0, 0)
+
+	for _, opt := range opts {
+		opt(m)
+	}
+
 	return m
 }
 
 // Init initializes the model.
 func (m Model) Init() tea.Cmd {
+	if m.initState.NeedsInit {
+		return nil
+	}
 	return commands.LoadInitialWeeks(m.repo, m.weekStart)
 }
 
@@ -204,9 +229,31 @@ func RunWithDebug(repo task.Repository, cfg *config.Config, debug bool) error {
 	}
 	defer CloseDebugLogger()
 
-	model := New(repo, cfg)
+	initialRepo := repo
+	var initState InitState
+
+	if repo == nil {
+		state, err := DetectInitState(cfg)
+		if err != nil {
+			return err
+		}
+		initState = state
+		if !state.NeedsInit {
+			repo, err = openRepo(state.DBPath)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	model := New(repo, cfg, WithInitState(initState))
 	model.layoutCache = model.buildLayoutCache(0, 0)
 	p := tea.NewProgram(model, tea.WithAltScreen())
-	_, err := p.Run()
+	finalModel, err := p.Run()
+	if initialRepo == nil {
+		if m, ok := finalModel.(Model); ok && m.repo != nil {
+			_ = m.repo.Close()
+		}
+	}
 	return err
 }

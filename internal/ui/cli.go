@@ -2,10 +2,13 @@ package ui
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
 	"github.com/javiermolinar/sancho/internal/config"
+	"github.com/javiermolinar/sancho/internal/db"
 	"github.com/javiermolinar/sancho/internal/task"
 	"github.com/javiermolinar/sancho/internal/tui"
 )
@@ -71,4 +74,30 @@ func (a *App) versionCmd() *cobra.Command {
 // Execute runs the CLI application.
 func (a *App) Execute() error {
 	return a.root.Execute()
+}
+
+// Close releases any resources held by the app.
+func (a *App) Close() error {
+	if a.repo == nil {
+		return nil
+	}
+	err := a.repo.Close()
+	a.repo = nil
+	return err
+}
+
+func (a *App) ensureRepo() error {
+	if a.repo != nil {
+		return nil
+	}
+	dbDir := filepath.Dir(a.config.Storage.DBPath)
+	if err := os.MkdirAll(dbDir, 0o755); err != nil {
+		return fmt.Errorf("creating data directory: %w", err)
+	}
+	repo, err := db.New(a.config.Storage.DBPath)
+	if err != nil {
+		return fmt.Errorf("initializing database: %w", err)
+	}
+	a.repo = repo
+	return nil
 }

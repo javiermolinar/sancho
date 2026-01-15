@@ -41,3 +41,23 @@ func TestRenderConfirmDeleteBody_UsesBodyStyleForMessage(t *testing.T) {
 		t.Fatalf("expected confirm delete message to use body style")
 	}
 }
+
+func TestRenderInitBody_UsesBodyStyleForConfigPath(t *testing.T) {
+	styles := InitModalStyles{
+		BodyStyle:  lipgloss.NewStyle().Foreground(lipgloss.Color("3")),
+		LabelStyle: lipgloss.NewStyle(),
+		HintStyle:  lipgloss.NewStyle(),
+	}
+	model := InitModalModel{
+		ConfigPath:    "/tmp/sancho/config.toml",
+		DBPath:        "/tmp/sancho/sancho.db",
+		ConfigMissing: true,
+		DBMissing:     true,
+	}
+
+	body := RenderInitBody(model, styles)
+	expected := styles.BodyStyle.Render(" " + model.ConfigPath)
+	if !strings.Contains(body, expected) {
+		t.Fatalf("expected config path to use body style")
+	}
+}

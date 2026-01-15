@@ -22,6 +22,10 @@ func (a *App) showCmd() *cobra.Command {
 This is a quick view without LLM evaluation. Use 'sancho week' for
 weekly stats and insights.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
+			if err := a.ensureRepo(); err != nil {
+				return err
+			}
+
 			if noColor {
 				DisableColor()
 			}

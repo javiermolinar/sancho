@@ -28,6 +28,10 @@ If both --start and --end are specified, lists tasks in that range (inclusive).`
   sancho list --start=2025-01-15
   sancho list --start=2025-01-15 --end=2025-01-20`,
 		RunE: func(_ *cobra.Command, _ []string) error {
+			if err := a.ensureRepo(); err != nil {
+				return err
+			}
+
 			dateRange, err := dateutil.NewDateRange(startDate, endDate)
 			if err != nil {
 				return err
