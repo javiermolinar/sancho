@@ -13,6 +13,7 @@ import (
 	"github.com/javiermolinar/sancho/internal/task"
 	"github.com/javiermolinar/sancho/internal/tui/commands"
 	"github.com/javiermolinar/sancho/internal/tui/theme"
+	"github.com/javiermolinar/sancho/internal/tui/view"
 )
 
 // Mode represents the current interaction mode.
@@ -100,8 +101,8 @@ type Model struct {
 	// Summary state
 	weekSummary            *summary.WeekSummary
 	weekSummaryView        weekSummaryView
-	weekSummarySummaryText []weekSummaryLine
-	weekSummaryTasksText   []weekSummaryLine
+	weekSummarySummaryText []view.WeekSummaryLine
+	weekSummaryTasksText   []view.WeekSummaryLine
 	weekSummaryCopyText    string
 
 	// Components

@@ -5,27 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
-
 	"github.com/javiermolinar/sancho/internal/summary"
 	"github.com/javiermolinar/sancho/internal/task"
 	"github.com/javiermolinar/sancho/internal/tui/view"
 )
 
 const weekSummaryFallbackWidth = 60
-
-type weekSummaryLineStyle int
-
-const (
-	weekSummaryLineBody weekSummaryLineStyle = iota
-	weekSummaryLineMeta
-	weekSummaryLineSection
-)
-
-type weekSummaryLine struct {
-	text  string
-	style weekSummaryLineStyle
-}
 
 func (m Model) renderWeekSummaryModal() string {
 	if m.weekSummary == nil {
@@ -46,58 +31,46 @@ func (m Model) weekSummaryFooter() string {
 }
 
 func (m Model) weekSummaryBody() string {
-	bodyWidth := modalContentWidth(m.styles.ModalStyle)
+	bodyWidth := view.ModalContentWidth(m.styles.ModalStyle, weekSummaryFallbackWidth)
 	lines := m.weekSummarySummaryText
 	if m.weekSummaryView == weekSummaryViewTasks {
 		lines = m.weekSummaryTasksText
 	}
-
-	rendered := make([]string, 0, len(lines))
-	for _, line := range lines {
-		rendered = append(rendered, wrapWeekSummaryLine(m, line, bodyWidth)...)
-	}
-	return strings.Join(rendered, "\n")
+	return view.RenderWeekSummaryBody(lines, view.WeekSummaryStyles{
+		BodyStyle:         m.styles.ModalBodyStyle,
+		MetaStyle:         m.styles.ModalMetaStyle,
+		SectionTitleStyle: m.styles.ModalSectionTitleStyle,
+	}, bodyWidth)
 }
 
-func wrapWeekSummaryLine(m Model, line weekSummaryLine, width int) []string {
-	switch line.style {
-	case weekSummaryLineSection:
-		return wrapModalText(m.styles.ModalSectionTitleStyle, line.text, width)
-	case weekSummaryLineMeta:
-		return wrapModalText(m.styles.ModalMetaStyle, line.text, width)
-	default:
-		return wrapModalText(m.styles.ModalBodyStyle, line.text, width)
-	}
-}
-
-func buildWeekSummaryLines(summary *summary.WeekSummary, showPeak bool) []weekSummaryLine {
-	lines := make([]weekSummaryLine, 0, 16)
+func buildWeekSummaryLines(summary *summary.WeekSummary, showPeak bool) []view.WeekSummaryLine {
+	lines := make([]view.WeekSummaryLine, 0, 16)
 	dateLine := fmt.Sprintf("%s - %s", summary.Start.Format("Mon Jan 2"), summary.End.Format("Mon Jan 2, 2006"))
-	lines = append(lines, weekSummaryLine{text: dateLine, style: weekSummaryLineMeta})
-	lines = append(lines, weekSummaryLine{text: ""})
+	lines = append(lines, view.WeekSummaryLine{Text: dateLine, Style: view.WeekSummaryLineMeta})
+	lines = append(lines, view.WeekSummaryLine{Text: ""})
 
 	if len(summary.Tasks) == 0 {
-		lines = append(lines, weekSummaryLine{text: "No time blocks scheduled for this week."})
+		lines = append(lines, view.WeekSummaryLine{Text: "No time blocks scheduled for this week."})
 		return lines
 	}
 
 	stats := summary.Stats
-	lines = append(lines, weekSummaryLine{
-		text:  fmt.Sprintf("Deep: %s (%d%%)", formatDuration(stats.DeepMinutes), stats.DeepPercent()),
-		style: weekSummaryLineBody,
+	lines = append(lines, view.WeekSummaryLine{
+		Text:  fmt.Sprintf("Deep: %s (%d%%)", formatDuration(stats.DeepMinutes), stats.DeepPercent()),
+		Style: view.WeekSummaryLineBody,
 	})
-	lines = append(lines, weekSummaryLine{
-		text:  fmt.Sprintf("Shallow: %s", formatDuration(stats.ShallowMinutes)),
-		style: weekSummaryLineBody,
+	lines = append(lines, view.WeekSummaryLine{
+		Text:  fmt.Sprintf("Shallow: %s", formatDuration(stats.ShallowMinutes)),
+		Style: view.WeekSummaryLineBody,
 	})
-	lines = append(lines, weekSummaryLine{
-		text:  fmt.Sprintf("Ratio: %s | Blocks: %d", stats.Ratio(), stats.TotalBlocks),
-		style: weekSummaryLineBody,
+	lines = append(lines, view.WeekSummaryLine{
+		Text:  fmt.Sprintf("Ratio: %s | Blocks: %d", stats.Ratio(), stats.TotalBlocks),
+		Style: view.WeekSummaryLineBody,
 	})
 
 	if bestDay, bestDeep := stats.BestDay(); bestDay >= 0 {
 		bestLine := fmt.Sprintf("Best day: %s (%s deep)", task.WeekdayName(bestDay), formatDuration(bestDeep))
-		lines = append(lines, weekSummaryLine{text: bestLine})
+		lines = append(lines, view.WeekSummaryLine{Text: bestLine})
 	}
 
 	if showPeak && stats.DeepMinutes > 0 {
@@ -105,33 +78,33 @@ func buildWeekSummaryLines(summary *summary.WeekSummary, showPeak bool) []weekSu
 			stats.PeakPercent(),
 			formatDuration(stats.PeakDeepMinutes),
 			formatDuration(stats.DeepMinutes))
-		lines = append(lines, weekSummaryLine{text: peakLine})
+		lines = append(lines, view.WeekSummaryLine{Text: peakLine})
 	}
 
 	if stats.CancelledBlocks > 0 || stats.PostponedBlocks > 0 {
 		line := fmt.Sprintf("Cancelled: %d | Postponed: %d", stats.CancelledBlocks, stats.PostponedBlocks)
-		lines = append(lines, weekSummaryLine{text: line, style: weekSummaryLineMeta})
+		lines = append(lines, view.WeekSummaryLine{Text: line, Style: view.WeekSummaryLineMeta})
 	}
 
 	if summary.Insight != "" {
-		lines = append(lines, weekSummaryLine{text: ""})
-		lines = append(lines, weekSummaryLine{text: "INSIGHT", style: weekSummaryLineSection})
+		lines = append(lines, view.WeekSummaryLine{Text: ""})
+		lines = append(lines, view.WeekSummaryLine{Text: "INSIGHT", Style: view.WeekSummaryLineSection})
 		for _, line := range strings.Split(summary.Insight, "\n") {
-			lines = append(lines, weekSummaryLine{text: line})
+			lines = append(lines, view.WeekSummaryLine{Text: line})
 		}
 	}
 
 	return lines
 }
 
-func buildWeekTasksLines(summary *summary.WeekSummary) []weekSummaryLine {
-	lines := make([]weekSummaryLine, 0, 24)
+func buildWeekTasksLines(summary *summary.WeekSummary) []view.WeekSummaryLine {
+	lines := make([]view.WeekSummaryLine, 0, 24)
 	dateLine := fmt.Sprintf("Week: %s - %s", summary.Start.Format("Mon Jan 2"), summary.End.Format("Mon Jan 2, 2006"))
-	lines = append(lines, weekSummaryLine{text: dateLine, style: weekSummaryLineMeta})
-	lines = append(lines, weekSummaryLine{text: ""})
+	lines = append(lines, view.WeekSummaryLine{Text: dateLine, Style: view.WeekSummaryLineMeta})
+	lines = append(lines, view.WeekSummaryLine{Text: ""})
 
 	if len(summary.Tasks) == 0 {
-		lines = append(lines, weekSummaryLine{text: "No time blocks scheduled for this week."})
+		lines = append(lines, view.WeekSummaryLine{Text: "No time blocks scheduled for this week."})
 		return lines
 	}
 
@@ -141,9 +114,9 @@ func buildWeekTasksLines(summary *summary.WeekSummary) []weekSummaryLine {
 		dayName := t.ScheduledDate.Format("Mon Jan 2")
 		if date != currentDate {
 			if currentDate != "" {
-				lines = append(lines, weekSummaryLine{text: ""})
+				lines = append(lines, view.WeekSummaryLine{Text: ""})
 			}
-			lines = append(lines, weekSummaryLine{text: dayName, style: weekSummaryLineSection})
+			lines = append(lines, view.WeekSummaryLine{Text: dayName, Style: view.WeekSummaryLineSection})
 			currentDate = date
 		}
 
@@ -153,20 +126,20 @@ func buildWeekTasksLines(summary *summary.WeekSummary) []weekSummaryLine {
 			category = "[D]"
 		}
 		line := fmt.Sprintf("  %s %s %s-%s %s", status, category, t.ScheduledStart, t.ScheduledEnd, t.Description)
-		lines = append(lines, weekSummaryLine{text: line})
+		lines = append(lines, view.WeekSummaryLine{Text: line})
 	}
 
 	return lines
 }
 
-func buildWeekTasksCopyText(lines []weekSummaryLine) string {
+func buildWeekTasksCopyText(lines []view.WeekSummaryLine) string {
 	return linesToText(lines)
 }
 
-func linesToText(lines []weekSummaryLine) string {
+func linesToText(lines []view.WeekSummaryLine) string {
 	parts := make([]string, 0, len(lines))
 	for _, line := range lines {
-		parts = append(parts, line.text)
+		parts = append(parts, line.Text)
 	}
 	return strings.Join(parts, "\n")
 }
@@ -182,29 +155,4 @@ func weekSummaryStatusSymbol(s task.Status) string {
 	default:
 		return "?"
 	}
-}
-
-func modalContentWidth(style lipgloss.Style) int {
-	width := style.GetWidth()
-	if width <= 0 {
-		return weekSummaryFallbackWidth
-	}
-	contentWidth := width - 4
-	return max(10, contentWidth)
-}
-
-func wrapModalText(style lipgloss.Style, text string, width int) []string {
-	if width <= 0 {
-		return []string{style.Render("")}
-	}
-	lines := view.WrapTextToWidths(text, width, width)
-	if len(lines) == 0 {
-		return []string{style.Render("")}
-	}
-
-	wrapped := make([]string, 0, len(lines))
-	for _, line := range lines {
-		wrapped = append(wrapped, style.Render(line))
-	}
-	return wrapped
 }

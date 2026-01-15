@@ -6,3 +6,4 @@
 - 2026-01-15: Removed tracked binaries and .DS_Store, and updated .gitignore.
 - 2026-01-15: Added SANCHO ASCII art and a Quijote quote to the README.
 - 2026-01-15: Added CLI support for importing tasks from another database with mapping and tests.
+- 2026-01-15: Extracted week summary modal body rendering into view helpers with dedicated tests.
