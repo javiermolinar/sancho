@@ -239,6 +239,76 @@ func (s *SQLite) ListTasksByDateRange(ctx context.Context, start, end time.Time)
 	return tasks, nil
 }
 
+// ListAllTasks returns all tasks ordered by ID.
+func (s *SQLite) ListAllTasks(ctx context.Context) ([]*task.Task, error) {
+	query := `
+		SELECT id, description, category, scheduled_date, scheduled_start, scheduled_end,
+		       status, outcome, postponed_from, created_at
+		FROM tasks
+		ORDER BY id
+	`
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("querying tasks: %w", err)
+	}
+	defer func() { _ = rows.Close() }()
+
+	var tasks []*task.Task
+	for rows.Next() {
+		var (
+			t             task.Task
+			scheduledDate string
+			createdAt     string
+			outcome       sql.NullString
+			postponedFrom sql.NullInt64
+		)
+
+		err := rows.Scan(
+			&t.ID,
+			&t.Description,
+			&t.Category,
+			&scheduledDate,
+			&t.ScheduledStart,
+			&t.ScheduledEnd,
+			&t.Status,
+			&outcome,
+			&postponedFrom,
+			&createdAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("scanning task: %w", err)
+		}
+
+		t.ScheduledDate, err = parseDate(scheduledDate)
+		if err != nil {
+			return nil, fmt.Errorf("parsing scheduled date: %w", err)
+		}
+
+		t.CreatedAt, err = time.Parse(time.RFC3339, createdAt)
+		if err != nil {
+			return nil, fmt.Errorf("parsing created at: %w", err)
+		}
+
+		if outcome.Valid {
+			o := task.Outcome(outcome.String)
+			t.Outcome = &o
+		}
+
+		if postponedFrom.Valid {
+			t.PostponedFrom = &postponedFrom.Int64
+		}
+
+		tasks = append(tasks, &t)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterating tasks: %w", err)
+	}
+
+	return tasks, nil
+}
+
 // CreateTasks adds multiple tasks in a batch using a transaction.
 // Returns ErrTimeBlockOverlap if any task overlaps with existing or other new tasks.
 func (s *SQLite) CreateTasks(ctx context.Context, tasks []*task.Task) error {

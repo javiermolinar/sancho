@@ -501,6 +501,86 @@ func TestListTasksByDateRange_Empty(t *testing.T) {
 	}
 }
 
+func TestListAllTasks(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := context.Background()
+
+	date := time.Date(2025, 1, 20, 0, 0, 0, 0, time.UTC)
+	outcome := task.OutcomeUnder
+
+	original := &task.Task{
+		Description:    "Original task",
+		Category:       task.CategoryDeep,
+		ScheduledDate:  date,
+		ScheduledStart: "09:00",
+		ScheduledEnd:   "10:00",
+		Status:         task.StatusPostponed,
+		CreatedAt:      time.Now(),
+	}
+	if err := repo.CreateTask(ctx, original); err != nil {
+		t.Fatalf("CreateTask failed: %v", err)
+	}
+
+	postponed := &task.Task{
+		Description:    "Postponed task",
+		Category:       task.CategoryShallow,
+		ScheduledDate:  date.AddDate(0, 0, 1),
+		ScheduledStart: "11:00",
+		ScheduledEnd:   "12:00",
+		Status:         task.StatusScheduled,
+		Outcome:        &outcome,
+		PostponedFrom:  &original.ID,
+		CreatedAt:      time.Now(),
+	}
+	if err := repo.CreateTask(ctx, postponed); err != nil {
+		t.Fatalf("CreateTask failed: %v", err)
+	}
+
+	third := &task.Task{
+		Description:    "Third task",
+		Category:       task.CategoryDeep,
+		ScheduledDate:  date.AddDate(0, 0, 2),
+		ScheduledStart: "13:00",
+		ScheduledEnd:   "14:00",
+		Status:         task.StatusCancelled,
+		CreatedAt:      time.Now(),
+	}
+	if err := repo.CreateTask(ctx, third); err != nil {
+		t.Fatalf("CreateTask failed: %v", err)
+	}
+
+	got, err := repo.ListAllTasks(ctx)
+	if err != nil {
+		t.Fatalf("ListAllTasks failed: %v", err)
+	}
+
+	if len(got) != 3 {
+		t.Fatalf("expected 3 tasks, got %d", len(got))
+	}
+
+	if got[0].Description != "Original task" {
+		t.Errorf("expected first task to be 'Original task', got %q", got[0].Description)
+	}
+	if got[1].Description != "Postponed task" {
+		t.Errorf("expected second task to be 'Postponed task', got %q", got[1].Description)
+	}
+	if got[2].Description != "Third task" {
+		t.Errorf("expected third task to be 'Third task', got %q", got[2].Description)
+	}
+
+	if got[1].Outcome == nil {
+		t.Error("expected outcome to be set")
+	} else if *got[1].Outcome != outcome {
+		t.Errorf("expected outcome %q, got %q", outcome, *got[1].Outcome)
+	}
+
+	if got[1].PostponedFrom == nil {
+		t.Error("expected PostponedFrom to be set")
+	} else if *got[1].PostponedFrom != got[0].ID {
+		t.Errorf("expected PostponedFrom %d, got %d", got[0].ID, *got[1].PostponedFrom)
+	}
+}
+
 func TestListTasksByDateRange_WithNullableFields(t *testing.T) {
 	repo := newTestRepo(t)
 	ctx := context.Background()

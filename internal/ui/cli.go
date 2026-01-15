@@ -57,6 +57,7 @@ and track your productivity over time.`,
 	a.root.AddCommand(a.planCmd())
 	a.root.AddCommand(a.weekCmd())
 	a.root.AddCommand(a.showCmd())
+	a.root.AddCommand(a.importCmd())
 
 	return a
 }
