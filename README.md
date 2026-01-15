@@ -1,15 +1,12 @@
-# sancho
-
 ```
-    _____  ___   _   _ _____  _   _ _____ 
+  _____  ___   _   _ _____  _   _ _____ 
 /  ___|/ _ \ | \ | /  __ \| | | |  _  |
 \ `--./ /_\ \|  \| | /  \/| |_| | | | |
  `--. \  _  || . ` | |    |  _  | | | |
 /\__/ / | | || |\  | \__/\| | | \ \_/ /
-\____/\_| |_/\_| \_/\____/\_| |_/\___/ 
-                                       
-                                       
+\____/\_| |_/\_| \_/\____/\_| |_/\___/
 ```
+              
 
 A terminal-first deep work companion for planning, scheduling, and tracking focused sessions.
 Built as a fast, local, and distraction-free TUI with a tiny SQLite store.
