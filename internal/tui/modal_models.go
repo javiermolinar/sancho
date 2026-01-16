@@ -1,13 +1,7 @@
 // Package tui provides the terminal user interface for sancho.
 package tui
 
-import (
-	"fmt"
-	"time"
-
-	"github.com/javiermolinar/sancho/internal/task"
-	"github.com/javiermolinar/sancho/internal/tui/view"
-)
+import "github.com/javiermolinar/sancho/internal/tui/view"
 
 type taskFormModalViewModel struct {
 	Title  string
@@ -56,32 +50,22 @@ func (m Model) taskFormModalViewModel() taskFormModalViewModel {
 		nameValue = input.View()
 	}
 
-	durationLabels := make([]string, 0, len(durationOptions))
-	for _, d := range durationOptions {
-		durationLabels = append(durationLabels, view.FormatDuration(d))
-	}
-
+	styleSet := m.modalStyleSet()
 	return taskFormModalViewModel{
 		Title: title,
-		Model: view.TaskFormModel{
-			MetaDate:         taskDate.Format("Mon Jan 2"),
-			TimeRange:        fmt.Sprintf("%s-%s", startTime, endTime),
-			DurationLabel:    view.FormatDuration(duration),
+		Model: view.NewTaskFormModel(view.TaskFormInput{
+			Date:             taskDate,
+			StartTime:        startTime,
+			EndTime:          endTime,
+			DurationMinutes:  duration,
 			NameValue:        nameValue,
 			NameLocked:       nameLocked,
 			DescStyle:        descStyle,
-			DurationOptions:  durationLabels,
+			DurationOptions:  durationOptions,
 			ActiveDuration:   m.formDuration,
 			ShowDurationHint: m.formFocus == 1,
-		},
-		Styles: view.TaskFormStyles{
-			TagStyle:          m.styles.ModalTagStyle,
-			BodyStyle:         m.styles.ModalBodyStyle,
-			SectionTitleStyle: m.styles.ModalSectionTitleStyle,
-			DurationActive:    m.styles.DurationActiveStyle,
-			DurationInactive:  m.styles.DurationInactiveStyle,
-			HintStyle:         m.styles.ModalHintStyle,
-		},
+		}),
+		Styles: styleSet.TaskFormStyles(),
 	}
 }
 
@@ -95,39 +79,11 @@ func (m Model) taskDetailModalViewModel() (taskDetailModalViewModel, bool) {
 	if m.modalTask == nil {
 		return taskDetailModalViewModel{}, false
 	}
-	t := m.modalTask
-	categoryIcon := "D"
-	categoryLabel := "Deep work"
-	if t.IsShallow() {
-		categoryIcon = "S"
-		categoryLabel = "Shallow work"
-	}
-	outcomeStr := "Not set"
-	if t.Outcome != nil {
-		switch *t.Outcome {
-		case task.OutcomeOnTime:
-			outcomeStr = "On time"
-		case task.OutcomeOver:
-			outcomeStr = "Over time"
-		case task.OutcomeUnder:
-			outcomeStr = "Under time"
-		}
-	}
-
+	styleSet := m.modalStyleSet()
 	return taskDetailModalViewModel{
-		Model: view.TaskDetailModel{
-			Description:   t.Description,
-			CategoryIcon:  categoryIcon,
-			CategoryLabel: categoryLabel,
-			TimeRange:     fmt.Sprintf("%s - %s (%s)", t.ScheduledStart, t.ScheduledEnd, view.FormatDuration(t.Duration())),
-			DateLabel:     t.ScheduledDate.Format("Monday, Jan 2, 2006"),
-			OutcomeLabel:  outcomeStr,
-		},
-		Styles: view.TaskDetailStyles{
-			BodyStyle:  m.styles.ModalBodyStyle,
-			LabelStyle: m.styles.ModalLabelStyle,
-		},
-		IsPast: t.IsPast(),
+		Model:  view.NewTaskDetailModel(m.modalTask),
+		Styles: styleSet.TaskDetailStyles(),
+		IsPast: m.modalTask.IsPast(),
 	}, true
 }
 
@@ -137,21 +93,10 @@ type confirmDeleteModalViewModel struct {
 }
 
 func (m Model) confirmDeleteModalViewModel() confirmDeleteModalViewModel {
-	model := view.ConfirmDeleteModel{HasTask: false}
-	if m.modalTask != nil {
-		model = view.ConfirmDeleteModel{
-			Description: m.modalTask.Description,
-			TimeRange:   fmt.Sprintf("%s - %s", m.modalTask.ScheduledStart, m.modalTask.ScheduledEnd),
-			DateLabel:   m.modalTask.ScheduledDate.Format("Mon Jan 2"),
-			HasTask:     true,
-		}
-	}
-
+	styleSet := m.modalStyleSet()
 	return confirmDeleteModalViewModel{
-		Model: model,
-		Styles: view.ConfirmDeleteStyles{
-			BodyStyle: m.styles.ModalBodyStyle,
-		},
+		Model:  view.NewConfirmDeleteModel(m.modalTask),
+		Styles: styleSet.ConfirmDeleteStyles(),
 	}
 }
 
@@ -166,55 +111,10 @@ func (m Model) planResultModalViewModel() (planResultModalViewModel, bool) {
 		return planResultModalViewModel{}, false
 	}
 
-	issues := make([]string, 0, len(m.planResult.ValidationErrors))
-	for _, ve := range m.planResult.ValidationErrors {
-		issues = append(issues, ve.Message)
-	}
-	days := make([]view.PlanResultDay, 0, len(m.planResult.SortedDates))
-	for _, dateStr := range m.planResult.SortedDates {
-		tasks := m.planResult.TasksByDate[dateStr]
-		if len(tasks) == 0 {
-			continue
-		}
-		label := dateStr + ":"
-		if date, err := time.Parse("2006-01-02", dateStr); err == nil {
-			label = date.Format("Mon Jan 2") + ":"
-		}
-		lines := make([]string, 0, len(tasks))
-		for _, t := range tasks {
-			icon := "D"
-			if t.Category == "shallow" {
-				icon = "S"
-			}
-			lines = append(lines, fmt.Sprintf("  [%s] %s-%s %s", icon, t.ScheduledStart, t.ScheduledEnd, t.Description))
-		}
-		days = append(days, view.PlanResultDay{
-			DateLabel: label,
-			Lines:     lines,
-		})
-	}
-
-	summary := fmt.Sprintf("Total: %d tasks", m.planResult.TotalTasks())
-	if len(m.planResult.SortedDates) > 1 {
-		summary += fmt.Sprintf(" across %d days", len(m.planResult.SortedDates))
-	}
-
+	styleSet := m.modalStyleSet()
 	return planResultModalViewModel{
-		Model: view.PlanResultModel{
-			IntroMessage:   "Review the draft and amend it before applying.",
-			Issues:         issues,
-			Warnings:       m.planResult.Warnings,
-			Days:           days,
-			NoTasks:        m.planResult.TotalTasks() == 0,
-			NoTasksMessage: "No tasks proposed.",
-			Summary:        summary,
-			AmendHint:      "Press m to amend the plan text before applying.",
-		},
-		Styles: view.PlanResultStyles{
-			MetaStyle:         m.styles.ModalMetaStyle,
-			SectionTitleStyle: m.styles.ModalSectionTitleStyle,
-			BodyStyle:         m.styles.ModalBodyStyle,
-		},
+		Model:               view.NewPlanResultModel(m.planResult),
+		Styles:              styleSet.PlanResultStyles(),
 		HasValidationErrors: m.planResult.HasValidationErrors(),
 	}, true
 }
@@ -227,6 +127,7 @@ type initModalViewModel struct {
 const weekSummaryFallbackWidth = 60
 
 func (m Model) initModalViewModel() initModalViewModel {
+	styleSet := m.modalStyleSet()
 	return initModalViewModel{
 		Model: view.InitModalModel{
 			ConfigPath:    m.initState.ConfigPath,
@@ -235,11 +136,7 @@ func (m Model) initModalViewModel() initModalViewModel {
 			DBMissing:     m.initState.DBMissing,
 			ErrorMessage:  m.initError,
 		},
-		Styles: view.InitModalStyles{
-			BodyStyle:  m.styles.ModalBodyStyle,
-			LabelStyle: m.styles.ModalLabelStyle,
-			HintStyle:  m.styles.ModalHintStyle,
-		},
+		Styles: styleSet.InitModalStyles(),
 	}
 }
 
@@ -254,14 +151,24 @@ func (m Model) weekSummaryBodyViewModel() weekSummaryBodyViewModel {
 	if m.weekSummaryView == weekSummaryViewTasks {
 		lines = m.weekSummaryTasksText
 	}
+	styleSet := m.modalStyleSet()
 	return weekSummaryBodyViewModel{
-		Lines: lines,
-		Styles: view.WeekSummaryStyles{
-			BodyStyle:         m.styles.ModalBodyStyle,
-			MetaStyle:         m.styles.ModalMetaStyle,
-			SectionTitleStyle: m.styles.ModalSectionTitleStyle,
-		},
-		Width: view.ModalContentWidth(m.styles.ModalStyle, weekSummaryFallbackWidth),
+		Lines:  lines,
+		Styles: styleSet.WeekSummaryStyles(),
+		Width:  view.ModalContentWidth(m.styles.ModalStyle, weekSummaryFallbackWidth),
+	}
+}
+
+func (m Model) modalStyleSet() view.ModalStyleSet {
+	return view.ModalStyleSet{
+		BodyStyle:             m.styles.ModalBodyStyle,
+		MetaStyle:             m.styles.ModalMetaStyle,
+		SectionTitleStyle:     m.styles.ModalSectionTitleStyle,
+		TagStyle:              m.styles.ModalTagStyle,
+		LabelStyle:            m.styles.ModalLabelStyle,
+		HintStyle:             m.styles.ModalHintStyle,
+		DurationActiveStyle:   m.styles.DurationActiveStyle,
+		DurationInactiveStyle: m.styles.DurationInactiveStyle,
 	}
 }
 

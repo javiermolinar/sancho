@@ -10,3 +10,4 @@
 - 2026-01-15: Centralized modal view-model builders and moved footer button selection into view helpers.
 - 2026-01-16: Moved week summary line builders into view helpers and fixed wrap width handling for emoji alignment.
 - 2026-01-16: Consolidated week summary modal rendering into modal helpers and removed the redundant file.
+- 2026-01-16: Added modal view constructors, a shared modal style set, and expanded plan result view tests for warnings/validation.
