@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/mattn/go-runewidth"
 )
 
 // PromptCommand is a command suggestion entry.
@@ -55,23 +56,31 @@ func WrapTextToWidths(s string, firstWidth, otherWidth int) []string {
 	width := firstWidth
 	lineStart := 0
 	lastSpace := -1
+	lineWidth := 0
 
-	for i, r := range runes {
+	for i := 0; i < len(runes); i++ {
+		r := runes[i]
 		if r == ' ' {
 			lastSpace = i
 		}
 
-		if i-lineStart+1 > width {
+		runeWidth := runewidth.RuneWidth(r)
+		if lineWidth+runeWidth > width {
 			if lastSpace >= lineStart {
 				lines = append(lines, string(runes[lineStart:lastSpace]))
+				i = lastSpace
 				lineStart = lastSpace + 1
 			} else {
 				lines = append(lines, string(runes[lineStart:i]))
 				lineStart = i
+				i--
 			}
 			width = otherWidth
 			lastSpace = -1
+			lineWidth = 0
+			continue
 		}
+		lineWidth += runeWidth
 	}
 
 	lines = append(lines, string(runes[lineStart:]))

@@ -612,19 +612,6 @@ func (m Model) singleLineTaskContent(indicator string, t *task.Task) string {
 	return prefix + desc
 }
 
-// formatDuration formats minutes as "Xh Ym".
-func formatDuration(minutes int) string {
-	if minutes < 60 {
-		return fmt.Sprintf("%dm", minutes)
-	}
-	h := minutes / 60
-	m := minutes % 60
-	if m == 0 {
-		return fmt.Sprintf("%dh", h)
-	}
-	return fmt.Sprintf("%dh %dm", h, m)
-}
-
 // nextSlotDown returns the next slot when moving down.
 // If on a task, jumps to the first slot after that task ends.
 // If on empty space, moves one slot down.

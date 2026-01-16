@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/javiermolinar/sancho/internal/tui/commands"
+	"github.com/javiermolinar/sancho/internal/tui/view"
 )
 
 // Update handles messages and updates the model.
@@ -122,9 +123,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case commands.WeekSummaryMsg:
 		m.weekSummary = msg.Summary
 		m.weekSummaryView = weekSummaryViewSummary
-		m.weekSummarySummaryText = buildWeekSummaryLines(msg.Summary, m.config.HasPeakHours())
-		m.weekSummaryTasksText = buildWeekTasksLines(msg.Summary)
-		m.weekSummaryCopyText = buildWeekTasksCopyText(m.weekSummaryTasksText)
+		m.weekSummarySummaryText = view.BuildWeekSummaryLines(msg.Summary, m.config.HasPeakHours())
+		m.weekSummaryTasksText = view.BuildWeekTasksLines(msg.Summary)
+		m.weekSummaryCopyText = view.BuildWeekTasksCopyText(m.weekSummaryTasksText)
 		m.mode = ModeModal
 		m.modalType = ModalWeekSummary
 		m.statusMsg = ""

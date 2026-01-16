@@ -6,6 +6,8 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
+
+	"github.com/javiermolinar/sancho/internal/tui/view"
 )
 
 // statusMsgOrDefault returns the status message or a space to preserve layout.
@@ -26,9 +28,9 @@ func (m Model) renderStatsBar(width int) string {
 	week := ww.Current()
 	stats := week.Stats()
 	dayStats := stats.DayStats[m.cursor.Day]
-	dayDeep := formatDuration(dayStats.DeepMinutes)
-	dayShallow := formatDuration(dayStats.ShallowMinutes)
-	weekTotal := formatDuration(stats.TotalMinutes())
+	dayDeep := view.FormatDuration(dayStats.DeepMinutes)
+	dayShallow := view.FormatDuration(dayStats.ShallowMinutes)
+	weekTotal := view.FormatDuration(stats.TotalMinutes())
 	weekDeep := stats.DeepPercent()
 
 	pending := 0

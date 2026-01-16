@@ -7,3 +7,5 @@
 - 2026-01-15: Added SANCHO ASCII art and a Quijote quote to the README.
 - 2026-01-15: Added CLI support for importing tasks from another database with mapping and tests.
 - 2026-01-15: Extracted week summary modal body rendering into view helpers with dedicated tests.
+- 2026-01-15: Centralized modal view-model builders and moved footer button selection into view helpers.
+- 2026-01-16: Moved week summary line builders into view helpers and fixed wrap width handling for emoji alignment.
