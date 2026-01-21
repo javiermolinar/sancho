@@ -151,6 +151,9 @@ func TestMaxSlots(t *testing.T) {
 			}
 			m := New(nil, cfg)
 			m.rowHeight = tt.rowHeight
+			m.slotState.UpdateConfig(SlotGridConfigFromWeekWindow(nil, tt.dayStart, tt.dayEnd, func() time.Time {
+				return time.Date(2030, 1, 1, 10, 0, 0, 0, time.UTC)
+			}, m.rowHeight))
 
 			got := m.maxSlots()
 			if got != tt.expected {

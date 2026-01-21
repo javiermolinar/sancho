@@ -125,3 +125,25 @@ func TestFocusCursorOnTaskEndAfterShrink(t *testing.T) {
 		t.Fatalf("cursor slot = %d, want 0", m.cursor.Slot)
 	}
 }
+
+func TestDisplayRangeMinutesExtendsToNow(t *testing.T) {
+	cfg := config.Default()
+	nowFunc := func() time.Time {
+		return time.Date(2030, 1, 1, 18, 5, 0, 0, time.UTC)
+	}
+
+	slotConfig := SlotGridConfigFromWeekWindow(nil, cfg.Schedule.DayStart, cfg.Schedule.DayEnd, nowFunc, 15)
+	m := Model{
+		config:    cfg,
+		slotState: NewSlotStateManager(slotConfig),
+		rowHeight: 15,
+	}
+
+	start, end := m.displayRangeMinutes()
+	if start != 9*60 {
+		t.Fatalf("start = %d, want %d", start, 9*60)
+	}
+	if end != 18*60+15 {
+		t.Fatalf("end = %d, want %d", end, 18*60+15)
+	}
+}

@@ -18,3 +18,4 @@
 - 2026-01-21: Nudged modal header and footer padding to align title and buttons.
 - 2026-01-21: Added vertical spacing between duration options and category section in task form modal.
 - 2026-01-21: Prevented move-up operations from landing in past slots and added coverage for the past boundary case.
+- 2026-01-22: Extended the display range to include the current time when it exceeds the configured day end, with a regression test.

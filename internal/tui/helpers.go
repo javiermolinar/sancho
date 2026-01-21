@@ -219,24 +219,31 @@ func (m *Model) displayRangeMinutes() (int, int) {
 	end := task.TimeToMinutes(m.config.Schedule.DayEnd)
 
 	ww := m.slotState.WeekWindow()
-	if ww == nil || ww.Current() == nil {
-		return start, end
+	if ww != nil && ww.Current() != nil {
+		for day := 0; day < 7; day++ {
+			d := ww.Current().Day(day)
+			if d == nil {
+				continue
+			}
+			for _, t := range d.ScheduledTasks() {
+				taskStart := task.TimeToMinutes(t.ScheduledStart)
+				taskEnd := task.TimeToMinutes(t.ScheduledEnd)
+				if taskStart < start {
+					start = taskStart
+				}
+				if taskEnd > end {
+					end = taskEnd
+				}
+			}
+		}
 	}
 
-	for day := 0; day < 7; day++ {
-		d := ww.Current().Day(day)
-		if d == nil {
-			continue
-		}
-		for _, t := range d.ScheduledTasks() {
-			taskStart := task.TimeToMinutes(t.ScheduledStart)
-			taskEnd := task.TimeToMinutes(t.ScheduledEnd)
-			if taskStart < start {
-				start = taskStart
-			}
-			if taskEnd > end {
-				end = taskEnd
-			}
+	now := m.now()
+	nowMins := now.Hour()*60 + now.Minute()
+	if nowMins >= 0 && nowMins < MinutesPerDay && m.rowHeight > 0 {
+		roundedNow := ((nowMins + 1 + m.rowHeight - 1) / m.rowHeight) * m.rowHeight
+		if roundedNow > end {
+			end = roundedNow
 		}
 	}
 
