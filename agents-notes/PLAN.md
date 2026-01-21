@@ -12,3 +12,5 @@
 - 2026-01-16: Consolidated week summary modal rendering into modal helpers and removed the redundant file.
 - 2026-01-16: Added modal view constructors, a shared modal style set, and expanded plan result view tests for warnings/validation.
 - 2026-01-21: Added selectable category section (deep/shallow) to the task creation modal.
+- 2026-01-21: Enforced non-empty task descriptions in task creation logic and repository writes, with tests for whitespace.
+- 2026-01-21: Restored task form navigation after empty title save and added up/down focus handling with tests.

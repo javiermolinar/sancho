@@ -481,6 +481,30 @@ func (m Model) handleTaskFormKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m.saveTaskFromForm()
 
+	case "down", "j":
+		if m.modalTask != nil {
+			return m, nil
+		}
+		m.formFocus = (m.formFocus + 1) % 3
+		if m.formFocus == 0 {
+			m.formDesc.Focus()
+		} else {
+			m.formDesc.Blur()
+		}
+		return m, nil
+
+	case "up", "k":
+		if m.modalTask != nil {
+			return m, nil
+		}
+		m.formFocus = (m.formFocus + 2) % 3
+		if m.formFocus == 0 {
+			m.formDesc.Focus()
+		} else {
+			m.formDesc.Blur()
+		}
+		return m, nil
+
 	case "left", "h":
 		if m.formFocus == 1 {
 			if m.formDuration > 0 {
@@ -633,6 +657,9 @@ func (m Model) saveTaskFromForm() (tea.Model, tea.Cmd) {
 	desc := strings.TrimSpace(m.formDesc.Value())
 	if desc == "" {
 		m.statusMsg = "Description is required"
+		m.formDesc.SetValue("")
+		m.formDesc.Focus()
+		m.formFocus = 0
 		return m, nil
 	}
 

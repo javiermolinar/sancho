@@ -4,6 +4,7 @@ package task
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/javiermolinar/sancho/internal/dateutil"
@@ -79,7 +80,8 @@ type Task struct {
 // category must be "deep" or "shallow".
 // start and end must be in HH:MM format, with end after start.
 func New(description, category, date, start, end string) (*Task, error) {
-	if description == "" {
+	trimmedDescription := strings.TrimSpace(description)
+	if trimmedDescription == "" {
 		return nil, ErrEmptyDescription
 	}
 
@@ -106,7 +108,7 @@ func New(description, category, date, start, end string) (*Task, error) {
 	}
 
 	return &Task{
-		Description:    description,
+		Description:    trimmedDescription,
 		Category:       cat,
 		ScheduledDate:  scheduledDate,
 		ScheduledStart: start,

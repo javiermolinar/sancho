@@ -36,6 +36,39 @@ func TestCreateTask(t *testing.T) {
 	}
 }
 
+func TestCreateTask_EmptyDescription(t *testing.T) {
+	repo := newTestRepo(t)
+
+	date := time.Date(2025, 1, 9, 0, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name        string
+		description string
+	}{
+		{name: "empty", description: ""},
+		{name: "whitespace", description: "   "},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tsk := &task.Task{
+				Description:    tt.description,
+				Category:       task.CategoryDeep,
+				ScheduledDate:  date,
+				ScheduledStart: "09:00",
+				ScheduledEnd:   "11:00",
+				Status:         task.StatusScheduled,
+				CreatedAt:      time.Now(),
+			}
+
+			err := repo.CreateTask(context.Background(), tsk)
+			if !errors.Is(err, task.ErrEmptyDescription) {
+				t.Fatalf("expected ErrEmptyDescription, got %v", err)
+			}
+		})
+	}
+}
+
 func TestCreateTask_WithOutcome(t *testing.T) {
 	repo := newTestRepo(t)
 
@@ -719,6 +752,42 @@ func TestCreateTasks(t *testing.T) {
 		if got.Description != tsk.Description {
 			t.Errorf("Description: got %q, want %q", got.Description, tsk.Description)
 		}
+	}
+}
+
+func TestCreateTasks_EmptyDescription(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := context.Background()
+
+	date := time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name        string
+		description string
+	}{
+		{name: "empty", description: ""},
+		{name: "whitespace", description: "   "},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tasks := []*task.Task{
+				{
+					Description:    tt.description,
+					Category:       task.CategoryDeep,
+					ScheduledDate:  date,
+					ScheduledStart: "09:00",
+					ScheduledEnd:   "10:00",
+					Status:         task.StatusScheduled,
+					CreatedAt:      time.Now(),
+				},
+			}
+
+			err := repo.CreateTasks(ctx, tasks)
+			if !errors.Is(err, task.ErrEmptyDescription) {
+				t.Fatalf("expected ErrEmptyDescription, got %v", err)
+			}
+		})
 	}
 }
 

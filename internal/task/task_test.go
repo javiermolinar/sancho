@@ -76,6 +76,15 @@ func TestNew_Errors(t *testing.T) {
 			wantErr:     ErrEmptyDescription,
 		},
 		{
+			name:        "whitespace description",
+			description: "   ",
+			category:    "deep",
+			date:        "",
+			start:       "09:00",
+			end:         "11:00",
+			wantErr:     ErrEmptyDescription,
+		},
+		{
 			name:        "invalid category",
 			description: "Test",
 			category:    "invalid",

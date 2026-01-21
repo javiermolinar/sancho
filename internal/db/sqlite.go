@@ -40,6 +40,12 @@ func New(path string) (*SQLite, error) {
 // CreateTask adds a new task to the repository.
 // Returns ErrTimeBlockOverlap if the task overlaps with an existing scheduled task.
 func (s *SQLite) CreateTask(ctx context.Context, t *task.Task) error {
+	trimmedDescription := strings.TrimSpace(t.Description)
+	if trimmedDescription == "" {
+		return task.ErrEmptyDescription
+	}
+	t.Description = trimmedDescription
+
 	// Check for overlapping tasks
 	if err := s.checkOverlap(ctx, t.ScheduledDate, t.ScheduledStart, t.ScheduledEnd); err != nil {
 		return err
@@ -314,6 +320,14 @@ func (s *SQLite) ListAllTasks(ctx context.Context) ([]*task.Task, error) {
 func (s *SQLite) CreateTasks(ctx context.Context, tasks []*task.Task) error {
 	if len(tasks) == 0 {
 		return nil
+	}
+
+	for _, t := range tasks {
+		trimmedDescription := strings.TrimSpace(t.Description)
+		if trimmedDescription == "" {
+			return task.ErrEmptyDescription
+		}
+		t.Description = trimmedDescription
 	}
 
 	// First, check for overlaps between the new tasks themselves
