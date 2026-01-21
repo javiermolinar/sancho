@@ -401,6 +401,10 @@ func (g *SlotGrid) MoveUp(t *task.Task) (*SlotGrid, error) {
 		if landing < gapStart {
 			landing = gapStart
 		}
+		if g.isPastPosition(day, landing) {
+			// Don't allow moving into past positions.
+			return g, nil
+		}
 		if landing >= startSlot {
 			// Can't move
 			return g, nil
@@ -429,6 +433,10 @@ func (g *SlotGrid) MoveUp(t *task.Task) (*SlotGrid, error) {
 		prevStart--
 	}
 	prevSlots := startSlot - prevStart
+	if g.isPastPosition(day, prevStart) {
+		// Don't allow swapping into past positions.
+		return g, nil
+	}
 
 	// After swap: our task at [prevStart, prevStart+numSlots), prevTask at [prevStart+numSlots, prevStart+numSlots+prevSlots)
 

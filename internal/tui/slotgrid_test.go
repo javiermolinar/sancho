@@ -29,6 +29,21 @@ func testConfig() SlotConfig {
 	}
 }
 
+func testConfigWithNow(now time.Time) SlotConfig {
+	firstDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	return SlotConfig{
+		SlotDuration:      15,
+		NumDays:           7,
+		FirstDate:         firstDate,
+		WorkingHoursStart: 540,
+		WorkingHoursEnd:   1020,
+		DisplaySlotSize:   2,
+		Now: func() time.Time {
+			return now
+		},
+	}
+}
+
 // makeTask creates a task with the given ID.
 func makeTask(id int64) *task.Task {
 	return &task.Task{
@@ -854,6 +869,23 @@ func TestSlotGrid_MoveUp(t *testing.T) {
 				t.Errorf("result = %q, want %q", got, tt.wantDay0)
 			}
 		})
+	}
+}
+
+func TestSlotGrid_MoveUp_PastPosition(t *testing.T) {
+	now := time.Date(2030, 1, 1, 1, 0, 0, 0, time.UTC) // slot 4
+	cfg := testConfigWithNow(now)
+	grid := gridFromString("AABBCCDD", cfg)
+	taskD := grid.TaskAt(0, findTaskStart(grid, 3))
+
+	newGrid, err := grid.MoveUp(taskD)
+	if err != nil {
+		t.Fatalf("MoveUp failed: %v", err)
+	}
+
+	got := printDayPrefix(newGrid, 0, 8)
+	if got != "AABBCCDD" {
+		t.Errorf("result = %q, want %q", got, "AABBCCDD")
 	}
 }
 
