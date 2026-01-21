@@ -85,7 +85,7 @@ type Model struct {
 	formDesc       textinput.Model // Description input
 	formCategory   int             // 0=deep, 1=shallow
 	formDuration   int             // Index into durationOptions
-	formFocus      int             // Which field is focused (0=desc, 1=duration)
+	formFocus      int             // Which field is focused (0=desc, 1=duration, 2=category)
 	confirmMessage string          // Message for confirm modal
 	initState      InitState       // Startup initialization state
 	initError      string          // Initialization error for modal display

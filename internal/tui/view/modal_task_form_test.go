@@ -15,16 +15,21 @@ func TestRenderTaskFormBody_IncludesSections(t *testing.T) {
 		SectionTitleStyle: lipgloss.NewStyle().Bold(true),
 		DurationActive:    lipgloss.NewStyle(),
 		DurationInactive:  lipgloss.NewStyle(),
+		CategoryActive:    lipgloss.NewStyle(),
+		CategoryInactive:  lipgloss.NewStyle(),
 		HintStyle:         lipgloss.NewStyle(),
 	}
 	model := TaskFormModel{
 		MetaDate:        "Mon Jan 2",
 		TimeRange:       "09:00-10:00",
 		DurationLabel:   "1h",
+		CategoryLabel:   "Deep work",
 		NameValue:       "Test",
 		DescStyle:       lipgloss.NewStyle(),
 		DurationOptions: []string{"30m", "1h"},
 		ActiveDuration:  1,
+		CategoryOptions: []string{"Deep work", "Shallow work"},
+		ActiveCategory:  0,
 	}
 
 	body := RenderTaskFormBody(model, styles)
@@ -33,5 +38,11 @@ func TestRenderTaskFormBody_IncludesSections(t *testing.T) {
 	}
 	if !strings.Contains(body, styles.SectionTitleStyle.Render("DURATION")) {
 		t.Fatalf("expected duration section title")
+	}
+	if !strings.Contains(body, styles.SectionTitleStyle.Render("CATEGORY")) {
+		t.Fatalf("expected category section title")
+	}
+	if !strings.Contains(body, "Deep work") {
+		t.Fatalf("expected category option")
 	}
 }

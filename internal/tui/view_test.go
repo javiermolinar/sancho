@@ -503,6 +503,14 @@ func TestRenderTaskFormModal_ShowsDurationOptions(t *testing.T) {
 			t.Errorf("expected duration option %q, got %q", label, view)
 		}
 	}
+	if !strings.Contains(view, "CATEGORY") {
+		t.Errorf("expected category section, got %q", view)
+	}
+	for _, label := range []string{"Deep work", "Shallow work"} {
+		if !strings.Contains(view, label) {
+			t.Errorf("expected category option %q, got %q", label, view)
+		}
+	}
 }
 
 func TestRenderPlanResultModal_ShowsAmendSection(t *testing.T) {

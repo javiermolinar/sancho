@@ -13,6 +13,8 @@ type ModalStyleSet struct {
 	HintStyle             lipgloss.Style
 	DurationActiveStyle   lipgloss.Style
 	DurationInactiveStyle lipgloss.Style
+	CategoryActiveStyle   lipgloss.Style
+	CategoryInactiveStyle lipgloss.Style
 }
 
 // TaskFormStyles returns the modal styles needed for the task form.
@@ -23,6 +25,8 @@ func (s ModalStyleSet) TaskFormStyles() TaskFormStyles {
 		SectionTitleStyle: s.SectionTitleStyle,
 		DurationActive:    s.DurationActiveStyle,
 		DurationInactive:  s.DurationInactiveStyle,
+		CategoryActive:    s.CategoryActiveStyle,
+		CategoryInactive:  s.CategoryInactiveStyle,
 		HintStyle:         s.HintStyle,
 	}
 }

@@ -12,12 +12,16 @@ type TaskFormModel struct {
 	MetaDate         string
 	TimeRange        string
 	DurationLabel    string
+	CategoryLabel    string
 	NameValue        string
 	NameLocked       bool
 	DescStyle        lipgloss.Style
 	DurationOptions  []string
 	ActiveDuration   int
 	ShowDurationHint bool
+	CategoryOptions  []string
+	ActiveCategory   int
+	ShowCategoryHint bool
 }
 
 // TaskFormStyles groups styles for the task form body.
@@ -27,6 +31,8 @@ type TaskFormStyles struct {
 	SectionTitleStyle lipgloss.Style
 	DurationActive    lipgloss.Style
 	DurationInactive  lipgloss.Style
+	CategoryActive    lipgloss.Style
+	CategoryInactive  lipgloss.Style
 	HintStyle         lipgloss.Style
 }
 
@@ -58,6 +64,21 @@ func RenderTaskFormBody(model TaskFormModel, styles TaskFormStyles) string {
 	}
 	body.WriteString(strings.Join(parts, sep))
 	if model.ShowDurationHint {
+		body.WriteString(sep + styles.HintStyle.Render("Use left/right"))
+	}
+	body.WriteString("\n")
+
+	body.WriteString(styles.SectionTitleStyle.Render("CATEGORY") + "\n")
+	categoryParts := make([]string, 0, len(model.CategoryOptions))
+	for i, label := range model.CategoryOptions {
+		if i == model.ActiveCategory {
+			categoryParts = append(categoryParts, styles.CategoryActive.Render(label))
+		} else {
+			categoryParts = append(categoryParts, styles.CategoryInactive.Render(label))
+		}
+	}
+	body.WriteString(strings.Join(categoryParts, sep))
+	if model.ShowCategoryHint {
 		body.WriteString(sep + styles.HintStyle.Render("Use left/right"))
 	}
 	body.WriteString("\n")

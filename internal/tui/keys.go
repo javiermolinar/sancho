@@ -445,7 +445,7 @@ func (m Model) handleTaskFormKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if m.modalTask != nil {
 			return m, nil
 		}
-		m.formFocus = (m.formFocus + 1) % 2
+		m.formFocus = (m.formFocus + 1) % 3
 		if m.formFocus == 0 {
 			m.formDesc.Focus()
 		} else {
@@ -457,7 +457,7 @@ func (m Model) handleTaskFormKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if m.modalTask != nil {
 			return m, nil
 		}
-		m.formFocus = (m.formFocus + 1) % 2 // +1 is same as -1 mod 2
+		m.formFocus = (m.formFocus + 2) % 3
 		if m.formFocus == 0 {
 			m.formDesc.Focus()
 		} else {
@@ -475,7 +475,10 @@ func (m Model) handleTaskFormKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.formDesc.Blur()
 			return m, nil
 		}
-		// Save the task
+		if m.formFocus == 1 {
+			m.formFocus = 2
+			return m, nil
+		}
 		return m.saveTaskFromForm()
 
 	case "left", "h":
@@ -485,11 +488,23 @@ func (m Model) handleTaskFormKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 		}
+		if m.formFocus == 2 {
+			if m.formCategory > 0 {
+				m.formCategory--
+			}
+			return m, nil
+		}
 
 	case "right", "l":
 		if m.formFocus == 1 {
 			if m.formDuration < len(durationOptions)-1 {
 				m.formDuration++
+			}
+			return m, nil
+		}
+		if m.formFocus == 2 {
+			if m.formCategory < 1 {
+				m.formCategory++
 			}
 			return m, nil
 		}

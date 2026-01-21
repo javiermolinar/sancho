@@ -17,12 +17,14 @@ type TaskFormInput struct {
 	StartTime        string
 	EndTime          string
 	DurationMinutes  int
+	Category         task.Category
 	NameValue        string
 	NameLocked       bool
 	DescStyle        lipgloss.Style
 	DurationOptions  []int
 	ActiveDuration   int
 	ShowDurationHint bool
+	ShowCategoryHint bool
 }
 
 // NewTaskFormModel builds a task form model from input data.
@@ -32,16 +34,30 @@ func NewTaskFormModel(input TaskFormInput) TaskFormModel {
 		durationLabels = append(durationLabels, FormatDuration(d))
 	}
 
+	categoryLabel := "Deep work"
+	if input.Category == task.CategoryShallow {
+		categoryLabel = "Shallow work"
+	}
+	categoryOptions := []string{"Deep work", "Shallow work"}
+	activeCategory := 0
+	if input.Category == task.CategoryShallow {
+		activeCategory = 1
+	}
+
 	return TaskFormModel{
 		MetaDate:         input.Date.Format("Mon Jan 2"),
 		TimeRange:        fmt.Sprintf("%s-%s", input.StartTime, input.EndTime),
 		DurationLabel:    FormatDuration(input.DurationMinutes),
+		CategoryLabel:    categoryLabel,
 		NameValue:        input.NameValue,
 		NameLocked:       input.NameLocked,
 		DescStyle:        input.DescStyle,
 		DurationOptions:  durationLabels,
 		ActiveDuration:   input.ActiveDuration,
 		ShowDurationHint: input.ShowDurationHint,
+		CategoryOptions:  categoryOptions,
+		ActiveCategory:   activeCategory,
+		ShowCategoryHint: input.ShowCategoryHint,
 	}
 }
 

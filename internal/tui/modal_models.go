@@ -1,7 +1,10 @@
 // Package tui provides the terminal user interface for sancho.
 package tui
 
-import "github.com/javiermolinar/sancho/internal/tui/view"
+import (
+	"github.com/javiermolinar/sancho/internal/task"
+	"github.com/javiermolinar/sancho/internal/tui/view"
+)
 
 type taskFormModalViewModel struct {
 	Title  string
@@ -17,16 +20,20 @@ func (m Model) taskFormModalViewModel() taskFormModalViewModel {
 	title := "New Task"
 	nameLocked := false
 	nameValue := m.formDesc.View()
+	category := task.CategoryDeep
 	if m.modalTask != nil {
 		title = "Edit Task"
 		taskDate = m.modalTask.ScheduledDate
 		startTime = m.modalTask.ScheduledStart
 		endTime = m.modalTask.ScheduledEnd
 		duration = m.modalTask.Duration()
+		category = m.modalTask.Category
 		if m.modalTask.IsPast() {
 			nameLocked = true
 			nameValue = m.modalTask.Description
 		}
+	} else if m.formCategory == 1 {
+		category = task.CategoryShallow
 	}
 
 	descStyle := m.styles.ModalInputStyle
@@ -58,12 +65,14 @@ func (m Model) taskFormModalViewModel() taskFormModalViewModel {
 			StartTime:        startTime,
 			EndTime:          endTime,
 			DurationMinutes:  duration,
+			Category:         category,
 			NameValue:        nameValue,
 			NameLocked:       nameLocked,
 			DescStyle:        descStyle,
 			DurationOptions:  durationOptions,
 			ActiveDuration:   m.formDuration,
 			ShowDurationHint: m.formFocus == 1,
+			ShowCategoryHint: m.formFocus == 2,
 		}),
 		Styles: styleSet.TaskFormStyles(),
 	}
@@ -169,6 +178,8 @@ func (m Model) modalStyleSet() view.ModalStyleSet {
 		HintStyle:             m.styles.ModalHintStyle,
 		DurationActiveStyle:   m.styles.DurationActiveStyle,
 		DurationInactiveStyle: m.styles.DurationInactiveStyle,
+		CategoryActiveStyle:   m.styles.CategoryActiveStyle,
+		CategoryInactiveStyle: m.styles.CategoryInactiveStyle,
 	}
 }
 
