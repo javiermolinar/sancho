@@ -66,7 +66,7 @@ func RenderTaskFormBody(model TaskFormModel, styles TaskFormStyles) string {
 	if model.ShowDurationHint {
 		body.WriteString(sep + styles.HintStyle.Render("Use left/right"))
 	}
-	body.WriteString("\n")
+	body.WriteString("\n\n")
 
 	body.WriteString(styles.SectionTitleStyle.Render("CATEGORY") + "\n")
 	categoryParts := make([]string, 0, len(model.CategoryOptions))

@@ -366,11 +366,11 @@ func NewStyles(t *theme.Theme) *Styles {
 		Bold(true).
 		Foreground(modalText).
 		Background(modalBg).
-		Padding(0, 1).
+		Padding(0, 1, 0, 0).
 		Align(lipgloss.Center)
 
 	s.ModalFooterStyle = lipgloss.NewStyle().
-		Padding(0, 1).
+		Padding(0, 1, 0, 0).
 		Background(modalBg)
 
 	s.ModalTitleStyle = lipgloss.NewStyle().
@@ -389,7 +389,6 @@ func NewStyles(t *theme.Theme) *Styles {
 	s.ModalSectionTitleStyle = lipgloss.NewStyle().
 		Foreground(modalText).
 		Bold(true).
-		PaddingLeft(1).
 		Background(modalBg)
 
 	s.ModalTagStyle = lipgloss.NewStyle().

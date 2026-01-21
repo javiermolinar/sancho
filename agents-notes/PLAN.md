@@ -14,3 +14,6 @@
 - 2026-01-21: Added selectable category section (deep/shallow) to the task creation modal.
 - 2026-01-21: Enforced non-empty task descriptions in task creation logic and repository writes, with tests for whitespace.
 - 2026-01-21: Restored task form navigation after empty title save and added up/down focus handling with tests.
+- 2026-01-21: Aligned modal section titles with tag and option pills by removing left padding.
+- 2026-01-21: Nudged modal header and footer padding to align title and buttons.
+- 2026-01-21: Added vertical spacing between duration options and category section in task form modal.
